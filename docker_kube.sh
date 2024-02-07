@@ -73,3 +73,15 @@ systemctl start kubelet
 kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v3.15/manifests/calico.yaml
 
 echo "Kubernetes setup completed."
+
+# Add kubeconfig to .bash_profile
+echo "Adding kubeconfig to .bash_profile..."
+if grep -q "export KUBECONFIG=/etc/kubernetes/admin.conf" ~/.bash_profile; then
+    echo "The command is already present in .bash_profile."
+else
+    # Add the command to .bash_profile using vi editor
+    echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
+    echo "Command added to .bash_profile."
+fi
+
+echo "Setup completed."
