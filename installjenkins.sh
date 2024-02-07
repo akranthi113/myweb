@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Install Java OpenJDK 11
@@ -26,7 +25,7 @@ sudo systemctl enable jenkins
 sudo systemctl start jenkins
 
 # Install Git
-yum install -y git
+sudo yum install -y git
 
 # Download Apache Maven repository configuration
 sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
@@ -37,8 +36,8 @@ sudo sed -i 's/\$releasever/6/g' /etc/yum.repos.d/epel-apache-maven.repo
 # Install Apache Maven
 sudo yum install -y apache-maven
 
+# Update Java version to 11
+sudo update-alternatives --set java $(sudo update-alternatives --list java | grep 'java-11-openjdk.x86_64')
+
 # Display initial Jenkins admin password
 cat /var/lib/jenkins/secrets/initialAdminPassword
-
-# Update Java version to 11
-sudo update-alternatives --set java $(sudo update-alternatives --display java | grep java-11 | awk '{print $1}')
