@@ -84,4 +84,7 @@ else
     echo "Command added to .bash_profile."
 fi
 
+# Export KUBECONFIG for current session
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
 echo "Setup completed."
