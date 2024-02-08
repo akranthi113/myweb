@@ -83,12 +83,6 @@ systemctl enable kubelet
 systemctl start kubelet
 check_command "Start kubelet service"
 
-echo "Applying Calico networking..."
-kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v3.15/manifests/calico.yaml
-check_command "Apply Calico networking"
-
-echo "Kubernetes setup completed."
-
 # Add kubeconfig to .bash_profile
 echo "Adding kubeconfig to .bash_profile..."
 if grep -q "export KUBECONFIG=/etc/kubernetes/admin.conf" ~/.bash_profile; then
