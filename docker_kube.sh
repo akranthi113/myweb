@@ -69,9 +69,6 @@ yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 systemctl enable kubelet
 systemctl start kubelet
 
-# Apply Calico networking
-kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v3.15/manifests/calico.yaml
-
 echo "Kubernetes setup completed."
 
 # Add kubeconfig to .bash_profile
