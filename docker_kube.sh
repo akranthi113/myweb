@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script installs Kubernetes on a CentOS/RHEL system
+# This script installs Docker and Kubernetes on a CentOS/RHEL system
 
 # Check if the script is running as root
 if [[ $EUID -ne 0 ]]; then
@@ -8,9 +8,44 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Function to check command success
+check_command() {
+    if [ $? -ne 0 ]; then
+        echo "Error: $1 failed"
+        exit 1
+    else
+        echo "Completed: $1"
+    fi
+}
+
+# Docker setup
+
+echo "Installing Docker..."
+yum install docker -y
+check_command "Install Docker"
+
+echo "Starting and enabling Docker service..."
+systemctl enable docker
+systemctl start docker
+check_command "Start Docker service"
+
+echo "Configuring Docker daemon..."
+cat > /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"]
+}
+EOF
+check_command "Configure Docker daemon"
+
+echo "Restarting Docker service..."
+systemctl restart docker
+check_command "Restart Docker service"
+
+echo "Docker installation and configuration completed."
+
 # Kubernetes setup
 
-# Add Kubernetes repository configuration
+echo "Adding Kubernetes repository configuration..."
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -21,31 +56,36 @@ repo_gpgcheck=0
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 exclude=kube*
 EOF
+check_command "Add Kubernetes repository configuration"
 
-# Configure sysctl settings for Kubernetes
+echo "Configuring sysctl settings for Kubernetes..."
 cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
-
-# Apply sysctl settings
 sysctl --system
+check_command "Configure sysctl settings for Kubernetes"
 
-# Temporarily disable SELinux
+echo "Temporarily disable SELinux..."
 setenforce 0
+check_command "Disable SELinux"
 
-# Turn off swap
+echo "Turn off swap..."
 swapoff -a
+check_command "Turn off swap"
 
-# Install Kubernetes components
+echo "Installing Kubernetes components..."
 yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+check_command "Install Kubernetes components"
 
-# Start and enable kubelet service
+echo "Starting and enabling kubelet service..."
 systemctl enable kubelet
 systemctl start kubelet
+check_command "Start kubelet service"
 
-# Apply Calico networking
+echo "Applying Calico networking..."
 kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v3.15/manifests/calico.yaml
+check_command "Apply Calico networking"
 
 echo "Kubernetes setup completed."
 
