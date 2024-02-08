@@ -8,29 +8,16 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Disable SELinux
-echo "Disabling SELinux..."
-sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
-setenforce 0
-
 # Docker setup
 
 # Install Docker using yum package manager
 echo "Installing Docker..."
-yum install docker -y
-if [ $? -ne 0 ]; then
-    echo "Failed to install Docker. Aborting."
-    exit 1
-fi
+yum install docker -y &&
 
 # Start and enable the Docker service
 echo "Starting and enabling Docker service..."
-systemctl enable docker
-systemctl start docker
-if [ $? -ne 0 ]; then
-    echo "Failed to start Docker service. Aborting."
-    exit 1
-fi
+systemctl enable docker &&
+systemctl start docker &&
 
 # Configure Docker daemon with a specific cgroup driver
 echo "Configuring Docker daemon..."
@@ -38,25 +25,18 @@ cat > /etc/docker/daemon.json <<EOF
 {
   "exec-opts": ["native.cgroupdriver=systemd"]
 }
-EOF
-if [ $? -ne 0 ]; then
-    echo "Failed to configure Docker daemon. Aborting."
-    exit 1
-fi
+EOF &&
 
 # Restart Docker service to apply configuration changes
 echo "Restarting Docker service..."
-systemctl restart docker
-if [ $? -ne 0 ]; then
-    echo "Failed to restart Docker service. Aborting."
-    exit 1
-fi
+systemctl restart docker &&
 
 echo "Docker installation and configuration completed."
 
 # Kubernetes setup
 
 # Add Kubernetes repository configuration
+echo "Adding Kubernetes repository configuration..."
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -66,55 +46,39 @@ gpgcheck=1
 repo_gpgcheck=0
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 exclude=kube*
-EOF
-if [ $? -ne 0 ]; then
-    echo "Failed to add Kubernetes repository configuration. Aborting."
-    exit 1
-fi
+EOF &&
 
 # Configure sysctl settings for Kubernetes
 echo "Configuring sysctl settings for Kubernetes..."
 cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
-EOF
-if [ $? -ne 0 ]; then
-    echo "Failed to configure sysctl settings for Kubernetes. Aborting."
-    exit 1
-fi
+EOF &&
 
 # Apply sysctl settings
 echo "Applying sysctl settings..."
-sysctl --system
-if [ $? -ne 0 ]; then
-    echo "Failed to apply sysctl settings. Aborting."
-    exit 1
-fi
+sysctl --system &&
+
+# Temporarily disable SELinux
+echo "Disabling SELinux..."
+setenforce 0 &&
 
 # Turn off swap
 echo "Turning off swap..."
-swapoff -a
-if [ $? -ne 0 ]; then
-    echo "Failed to turn off swap. Aborting."
-    exit 1
-fi
+swapoff -a &&
 
 # Install Kubernetes components
 echo "Installing Kubernetes components..."
-yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-if [ $? -ne 0 ]; then
-    echo "Failed to install Kubernetes components. Aborting."
-    exit 1
-fi
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes &&
 
 # Start and enable kubelet service
 echo "Starting and enabling kubelet service..."
-systemctl enable kubelet
-systemctl start kubelet
-if [ $? -ne 0 ]; then
-    echo "Failed to start kubelet service. Aborting."
-    exit 1
-fi
+systemctl enable kubelet &&
+systemctl start kubelet &&
+
+# Apply Calico networking
+echo "Applying Calico networking..."
+kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v3.15/manifests/calico.yaml &&
 
 echo "Kubernetes setup completed."
 
@@ -124,14 +88,11 @@ if grep -q "export KUBECONFIG=/etc/kubernetes/admin.conf" ~/.bash_profile; then
     echo "The command is already present in .bash_profile."
 else
     # Add the command to .bash_profile using vi editor
-    echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
+    echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile &&
     echo "Command added to .bash_profile."
-fi
+fi &&
 
 # Export KUBECONFIG for current session
-echo "Exporting KUBECONFIG for current session..."
-export KUBECONFIG=/etc/kubernetes/admin.conf
+export KUBECONFIG=/etc/kubernetes/admin.conf &&
 
-echo "Setup completed. Rebooting the system to apply SELinux changes..."
-sleep 5
-reboot
+echo "Setup completed."
