@@ -8,6 +8,11 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Disable SELinux
+echo "Disabling SELinux..."
+sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+setenforce 0
+
 # Docker setup
 
 # Install Docker using yum package manager
@@ -86,14 +91,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Temporarily disable SELinux
-echo "Disabling SELinux..."
-setenforce 0
-if [ $? -ne 0 ]; then
-    echo "Failed to disable SELinux. Aborting."
-    exit 1
-fi
-
 # Turn off swap
 echo "Turning off swap..."
 swapoff -a
@@ -135,4 +132,6 @@ fi
 echo "Exporting KUBECONFIG for current session..."
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
-echo "Setup completed."
+echo "Setup completed. Rebooting the system to apply SELinux changes..."
+sleep 5
+reboot
