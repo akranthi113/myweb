@@ -89,12 +89,8 @@ else
 fi
 
 echo "Temporarily disabling SELinux..."
-if [ $(getenforce) != "Disabled" ]; then
-    setenforce 0
-    check_command "Disable SELinux"
-else
-    echo "SELinux is already disabled."
-fi
+setenforce 0
+check_command "Disable SELinux"
 
 echo "Turn off swap..."
 if [ $(swapon -s | wc -l) -gt 1 ]; then
