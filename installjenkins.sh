@@ -39,13 +39,5 @@ sudo yum install -y apache-maven && \
 # Update Java version to 11
 sudo update-alternatives --set java $(sudo update-alternatives --list java | grep 'java-11-openjdk.x86_64') && \
 
-# Start Jenkins service
-sudo systemctl start jenkins
-
-# Wait until initialAdminPassword file is created
-while [ ! -f /var/lib/jenkins/secrets/initialAdminPassword ]; do
-    sleep 10
-done
-
 # Display initial Jenkins admin password
 cat /var/lib/jenkins/secrets/initialAdminPassword
