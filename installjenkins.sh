@@ -3,26 +3,29 @@
 # Install Java OpenJDK 11
 amazon-linux-extras install java-openjdk11 -y && \
 
-# Download Jenkins repository configuration
-wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo && \
+# Check if Jenkins is already installed
+if ! rpm -q jenkins &> /dev/null; then
+    # Download Jenkins repository configuration
+    wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo && \
 
-# Import Jenkins repository key
-rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key && \
+    # Import Jenkins repository key
+    rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key && \
 
-# Install Jenkins
-yum install jenkins -y && \
+    # Install Jenkins
+    yum install jenkins -y && \
 
-# Display Jenkins version
-/usr/bin/jenkins --version && \
+    # Display Jenkins version
+    /usr/bin/jenkins --version && \
 
-# Check Jenkins service status
-systemctl status jenkins && \
-
-# Enable Jenkins service
-sudo systemctl enable jenkins && \
+    # Enable Jenkins service
+    sudo systemctl enable jenkins
+fi
 
 # Start Jenkins service
-sudo systemctl start jenkins && \
+sudo systemctl start jenkins
+
+# Check Jenkins service status
+systemctl status jenkins
 
 # Install Git
 yum install -y git && \
