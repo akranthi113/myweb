@@ -22,7 +22,7 @@ systemctl status jenkins && \
 sudo systemctl enable jenkins && \
 
 # Start Jenkins service
-systemctl start jenkins && \
+sudo systemctl start jenkins && \
 
 # Install Git
 yum install -y git && \
