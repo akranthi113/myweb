@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# This script installs Docker and Kubernetes on a CentOS/RHEL system
-
 # Check if the script is running as root
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root" 
@@ -36,6 +34,7 @@ echo "Docker installation and configuration completed."
 # Kubernetes setup
 
 # Add Kubernetes repository configuration
+echo "Adding Kubernetes repository configuration..."
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -48,12 +47,14 @@ exclude=kube*
 EOF
 
 # Configure sysctl settings for Kubernetes
+echo "Configuring sysctl settings for Kubernetes..."
 cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 
 # Apply sysctl settings
+echo "Applying sysctl settings..."
 sysctl --system
 
 # Temporarily disable SELinux
@@ -61,30 +62,37 @@ echo "Temporarily disabling SELinux..."
 setenforce 0
 
 # Turn off swap
+echo "Turning off swap..."
 swapoff -a
 
 # Install Kubernetes components
+echo "Installing Kubernetes components..."
 yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 
 # Start and enable kubelet service
+echo "Starting and enabling kubelet service..."
 systemctl enable kubelet
 systemctl start kubelet
 
 echo "Kubernetes setup completed."
 
 # Export KUBECONFIG for current session
+echo "Exporting KUBECONFIG for the current session..."
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 # Additional commands
 echo "Installing iproute..."
 yum install iproute -y
 
+# Initialize Kubernetes cluster
 echo "Initializing Kubernetes cluster..."
 kubeadm init
 
+# Deploy Calico network plugin
 echo "Deploying Calico network plugin..."
 kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/v3.15/manifests/calico.yaml
 
+# Get list of nodes
 echo "Getting list of nodes..."
 kubectl get nodes
 
