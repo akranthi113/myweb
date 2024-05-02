@@ -4,7 +4,7 @@
 check_and_install() {
   if ! command -v "$1" &> /dev/null; then
     echo "Installing missing command: $1"
-    dnf install -y "$1"  # Use dnf for package management
+    sudo yum install -y "$1"  # Use yum for package management
   fi
 }
 
@@ -17,17 +17,14 @@ sudo swapoff -a
 sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 
 # Update packages and install prerequisites
-sudo dnf update -y
-sudo dnf install -y dnf-utils device-mapper-persistent-data lvm2
+sudo yum update -y
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
 
 # Install Docker
 sudo amazon-linux-extras install docker
-sudo service docker start
+sudo systemctl start docker
+sudo systemctl enable docker
 sudo usermod -a -G docker $USER
-
-# Create required directories
-sudo mkdir -p /usr/share/keyrings/
-sudo mkdir -p /etc/yum.repos.d/
 
 # Install Kubernetes components
 cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
@@ -40,8 +37,8 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 
-sudo dnf install -y kubelet kubeadm kubectl
-sudo dnf versionlock kubelet kubeadm kubectl  # Hold package versions
+sudo yum install -y kubelet kubeadm kubectl
+sudo systemctl enable kubelet
 
 # Initialize the master node (adjust pod network CIDR if needed)
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
