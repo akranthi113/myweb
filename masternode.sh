@@ -9,7 +9,7 @@ check_and_install() {
 }
 
 # Check for required commands and attempt installation
-check_and_install dnf
+check_and_install yum
 check_and_install lsb_release
 
 # Disable swap
@@ -37,7 +37,7 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 
-sudo yum install -y kubelet kubeadm kubectl
+sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 sudo systemctl enable kubelet
 
 # Initialize the master node (adjust pod network CIDR if needed)
