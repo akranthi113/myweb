@@ -4,11 +4,11 @@
 check_and_install() {
   if ! command -v "$1" &> /dev/null; then
     echo "Installing missing command: $1"
-    dnf install -y "$1"
+    dnf install -y "$1"  # Use dnf for package management
   fi
 }
 
-# Check for required commands and install if missing
+# Check for required commands and attempt installation
 check_and_install dnf
 check_and_install lsb_release
 
@@ -39,8 +39,9 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-sudo dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-sudo systemctl enable --now kubelet
+
+sudo dnf install -y kubelet kubeadm kubectl
+sudo dnf versionlock kubelet kubeadm kubectl  # Hold package versions
 
 # Initialize the master node (adjust pod network CIDR if needed)
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
@@ -51,6 +52,6 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 # Install Flannel network plugin (adjust if using a different plugin)
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml 
 
 echo "**Master node initialization complete. Please note the kubeadm join command for worker nodes.**"
