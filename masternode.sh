@@ -10,7 +10,7 @@ check_and_install() {
 
 # Check for required commands and attempt installation
 check_and_install yum
-check_and_install lsb_release
+check_and_install redhat-lsb-core
 
 # Disable swap
 sudo swapoff -a
@@ -27,18 +27,17 @@ sudo systemctl enable docker
 sudo usermod -a -G docker $USER
 
 # Install Kubernetes components
-cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+sudo tee /etc/yum.repos.d/kubernetes.repo <<EOF
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-enabled=1
+enabled=0
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 
 sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-sudo systemctl enable kubelet
 
 # Initialize the master node (adjust pod network CIDR if needed)
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
